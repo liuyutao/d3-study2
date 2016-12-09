@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<head>
+    <title>Cause of Death by Age</title>
+    <link rel="stylesheet" href="style/style.css" type="text/css" media="screen"/>
+
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
+    <meta charset="utf-8">
+</head>
+<style></style>
+<body>
+<div id="filters">
+    <div class="demo current" data-val="F">Female</div>
+    <div class="demo" data-val="M">Male</div>
+    <div class="sep">&nbsp;</div>
+    <div class="demo" data-val="A">American Indian or Alaska Native</div>
+    <div class="demo" data-val="S">Asian or Pacific Islander</div>
+    <div class="demo" data-val="B">Black or African American</div>
+    <div class="demo" data-val="W">White</div>
+</div>
+<div class="clr"></div>
+<div id="chart"></div>
+<script src="js/d3-3-5-5.min.js"></script>
+<script>
+
+    var USER_DEMO = 'F';
+    var USER_CAUSE = null;
+
+    var causes_meta = {
+        "A00-B99": {
+            "name": "Infection",
+            "descrip": "Infectious and Parasitic Diseases",
+            xlab: 40,
+            "pct": 3,
+            "Apct": 3,
+            "Spct": 3,
+            "Bpct": 5,
+            "Wpct": 2,
+            "Fpct": 3,
+            "Mpct": 3,
+            color: "#74be34"
+        },
+        "C00-D48": {
+            "name": "Cancer",
+            "descrip": "Cancer",
+            xlab: 60,
+            "pct": 24,
+            "Apct": 18,
+            "Spct": 28,
+            "Bpct": 23,
+            "Wpct": 24,
+            "Fpct": 22,
+            "Mpct": 25,
+            color: "#ca4471"
+        },
+        "D50-D89": {
+            "name": "Blood",
+            "descrip": "Diseases of the Blood and Blood-Forming Organs",
+            xlab: 100,
+            "pct": 0,
+            "Apct": 0,
+            "Spct": 0,
+            "Bpct": 1,
+            "Wpct": 0,
+            "Fpct": 0,
+            "Mpct": 0,
+            color: "#ffb7c7"
+        },
+        "E00-E88": {
+            "name": "Endocrine",
+            "descrip": "Endocrine, Nutritional, and Metabolic Diseases",
+            xlab: 59,
+            "pct": 4,
+            "Apct": 7,
+            "Spct": 5,
+            "Bpct": 6,
+            "Wpct": 4,
+            "Fpct": 4,
+            "Mpct": 4,
+            color: "#fdac51"
+        },
+        "F01-F99": {
+            "name": "Mental",
+            "descrip": "Mental and Behavioral Disorders",
+            xlab: 94,
+            "pct": 5,
+            "Apct": 3,
+            "Spct": 3,
+            "Bpct": 3,
+            "Wpct": 5,
+            "Fpct": 6,
+            "Mpct": 3,
+            color: "#948ec2"
+        },
+        "G00-G98": {
+            "name": "Nervous",
+            "descrip": "Diseases of the Nervous System",
+            xlab: 9,
+            "pct": 6,
+            "Apct": 3,
+            "Spct": 4,
+            "Bpct": 4,
+            "Wpct": 6,
+            "Fpct": 7,
+            "Mpct": 4,
+            color: "#f366da"
+        },
+        // "H00-H57": { "name": "Eye", "descrip": "eye and adnexa", xlab: 85, "pct": 0, "Apct":0, "Spct":0, "Bpct":0, "Wpct":0, "Fpct":0, "Mpct":0},
+        // "H60-H93": { "name": "Ear", "descrip": "ear and mastoid process", xlab: 85, "pct": 0, "Apct":0, "Spct":0, "Bpct":0, "Wpct":0, "Fpct":0, "Mpct":0},
+        "I00-I99": {
+            "name": "Circulatory",
+            "descrip": "Diseases of the Circulatory System",
+            xlab: 70,
+            "Apct": 24,
+            "Spct": 33,
+            "Bpct": 33,
+            "Wpct": 32,
+            "Fpct": 33,
+            "Mpct": 32,
+            color: "#8c53d3"
+        },
+        "J00-J98": {
+            "name": "Respiratory",
+            "descrip": "Diseases of the Respiratory System",
+            xlab: 75,
+            "pct": 10,
+            "Apct": 8,
+            "Spct": 8,
+            "Bpct": 6,
+            "Wpct": 10,
+            "Fpct": 10,
+            "Mpct": 9,
+            color: "#5574f0"
+        },
+        "K00-K92": {
+            "name": "Digestive",
+            "descrip": "Diseases of the Digestive System",
+            xlab: 44,
+            "pct": 4,
+            "Apct": 8,
+            "Spct": 3,
+            "Bpct": 3,
+            "Wpct": 4,
+            "Fpct": 4,
+            "Mpct": 4,
+            color: "#ac8f4d"
+        },
+        // "L00-L98": { "name": "Skin", "descrip": "skin and subcutaneous tissue", xlab:85, "pct": 0, "Apct":0, "Spct":0, "Bpct":0, "Wpct":0, "Fpct":0, "Mpct":0 },
+        "M00-M99": {
+            "name": "Musculoskeletal",
+            "descrip": "Diseases of the Musculoskeletal System and Connective Tissue",
+            xlab: 100,
+            "pct": 1,
+            "Apct": 1,
+            "Spct": 1,
+            "Bpct": 1,
+            "Wpct": 1,
+            "Fpct": 1,
+            "Mpct": 0,
+            color: "#df5d75"
+        },
+        "N00-N98": {
+            "name": "Genitourinary",
+            "descrip": "Diseases of the Genitourinary System",
+            xlab: 80,
+            "pct": 3,
+            "Apct": 3,
+            "Spct": 3,
+            "Bpct": 4,
+            "Wpct": 2,
+            "Fpct": 3,
+            "Mpct": 2,
+            color: "#e6c800"
+        },
+        // "O00-O99": { "name": "Pregnancy", "descrip": "Pregnancy, childbirth", xlab: 85, "pct": 0, "Apct":0, "Spct":0, "Bpct":0, "Wpct":0, "Fpct":0, "Mpct":0 },
+        "P00-P96": {
+            "name": "Perinatal",
+            "descrip": "Conditions Originating in the Perinatal Period",
+            xlab: 100,
+            "pct": 1,
+            "Apct": 1,
+            "Spct": 1,
+            "Bpct": 2,
+            "Wpct": 0,
+            "Fpct": 0,
+            "Mpct": 1,
+            color: "#ccebc5"
+        },
+        "Q00-Q99": {
+            "name": "Congenital",
+            "descrip": "Congenital Defects",
+            xlab: 5,
+            "pct": 0,
+            "Apct": 1,
+            "Spct": 1,
+            "Bpct": 1,
+            "Wpct": 0,
+            "Fpct": 0,
+            "Mpct": 0,
+            color: "#08ceaf"
+        },
+        // "R00-R99": { "name": "Not Classified", "descrip": "not classified", xlab:85, "pct":  1, "Apct":2, "Spct":1, "Bpct":2, "Wpct":1, "Fpct":2, "Mpct":1 },
+        // "U00-U99": { "name": "Special", "descrip": "special purposes", xlab: 85, "pct": 0, "Apct":0, "Spct":0, "Bpct":0, "Wpct":0, "Fpct":0, "Mpct":0 },
+        "V01-Y89": {
+            "name": "External Causes",
+            "descrip": "External Causes",
+            xlab: 20,
+            "pct": 7,
+            "Apct": 17,
+            "Spct": 7,
+            "Bpct": 8,
+            "Wpct": 7,
+            "Fpct": 5,
+            "Mpct": 10,
+            color: "#777"
+        },
+        "other": {
+            "name": "Other",
+            "descrip": "Other",
+            xlab: 26,
+            "pct": -99,
+            "Apct": 2,
+            "Spct": 1,
+            "Bpct": 2,
+            "Wpct": 2,
+            "Fpct": 2,
+            "Mpct": 1,
+            color: "#cccccc"
+        }
+    }
+
+
+    var demos_meta = {
+        "F": {key: "F", "name": "Female"},
+        "M": {key: "M", "name": "Male"},
+        "A": {key: "A", "name": "American Indian or Alaska Native"},
+        "S": {key: "S", "name": "Asian or Pacific Islander"},
+        "B": {key: "B", "name": "Black or African American"},
+        "W": {key: "W", "name": "White"},
+    }
+
+
+    var the_data;
+
+
+    var margin = {top: 10, right: 15, bottom: 30, left: 40},
+            width = 1090 - margin.left - margin.right,
+            height = 700 - margin.top - margin.bottom,
+            percent = d3.format('%');
+
+    var x = d3.scale.linear()
+            .range([0, width]);
+
+    var y = d3.scale.linear()
+            .range([height, 0]);
+
+    var z = d3.scale.category20c();
+
+    var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom")
+            .tickFormat(function (d) {
+                if (d == 100) {
+                    return ">100";
+                } else {
+                    return d;
+                }
+            });
+
+    var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .tickFormat(percent);
+
+
+    var stack = d3.layout.stack()
+            .offset("zero")
+            .values(function (d) {
+                return d.values;
+            })
+            .x(function (d) {
+                return d.age;
+            })
+            .y(function (d) {
+                return d.prop;
+            });
+
+    var nest = d3.nest()
+            .key(function (d) {
+                return d.cause;
+            });
+
+    var area = d3.svg.area()
+            // .interpolate("cardinal")
+            .x(function (d) {
+                return x(d.age);
+            })
+            .y0(function (d) {
+                return y(d.y0);
+            })
+            .y1(function (d) {
+                return y(d.y0 + d.y);
+            });
+
+    var svg = d3.select("#chart").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+    d3.tsv("data/death-prop-2005-2014.tsv", type, function (error, data_all) {
+
+        the_data = data_all;
+        data_filtered = data_all.filter(function (d) {
+            return d.group === USER_DEMO;
+        });
+
+        var layers = stack(nest.entries(data_filtered));
+
+        x.domain(d3.extent(data_filtered, function (d) {
+            return d.age;
+        }));
+        y.domain([0, d3.max(data_filtered, function (d) {
+            return d.y0 + d.y;
+        })]);
+
+
+        //
+        // Filter buttons
+        //
+
+        var filters = d3.selectAll("#filters .demo")
+                .on("click", function () {
+                    d3.select(".demo.current").classed("current", false);
+                    USER_DEMO = d3.select(this).attr("data-val");
+                    d3.select(this).classed("current", true);
+                    update();
+                });
+
+
+        //
+        // Notes for currently selected (blank to start)
+        //
+
+        var curr_title = svg.append("text")
+                .attr("id", "currcause")
+                .attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top - 100) + ")");
+        var curr_pct = svg.append("text")
+                .attr("id", "currpct")
+                .attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top - 50) + ")")
+                .text("0%");
+        var curr_meta = svg.append("text")
+                .attr("id", "currmeta")
+                .attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top - 20) + ")")
+                .text("Total Deaths, 2005-2014");
+
+
+        //
+        // Navigation buttons for previous and next
+        //
+        var reset_button = svg.append("text")
+                .attr("id", "reset")
+                .attr("class", "navbutton")
+                .attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top - 150) + ")")
+                .text("SHOW ALL")
+                .on("click", reset);
+        var prev_button = svg.append("text")
+                .attr("id", "previous")
+                .attr("class", "navbutton")
+                .attr("transform", "translate(" + (width / 2 + margin.left - 10) + "," + (height / 2 + margin.top + 20) + ")")
+                .text("< PREV")
+                .on("click", previous);
+        var next_button = svg.append("text")
+                .attr("id", "next")
+                .attr("class", "navbutton")
+                .attr("transform", "translate(" + (width / 2 + margin.left + 10) + "," + (height / 2 + margin.top + 20) + ")")
+                .text("NEXT >")
+                .on("click", next);
+
+        //
+        // Layers
+        //
+
+        svg.selectAll(".layer")
+                .data(layers)
+                .enter().append("path")
+                .attr("class", "layer")
+                .attr("id", function (d) {
+                    return d.key;
+                })
+                .attr("d", function (d) {
+                    return area(d.values);
+                })
+                .style("fill", function (d, i) {
+                    return causes_meta[d.key].color;
+                });
+
+
+        var layer_label = svg.selectAll(".layerlabel")
+                .data(layers)
+                .enter().append("text")
+                .attr("class", "layerlabel")
+                .attr("transform", function (d) {
+                    var cmeta = causes_meta[d.key];
+                    var cvalue = d.values[cmeta.xlab];
+                    // console.log(cvalue);
+                    return "translate(" + x(cmeta.xlab) + "," + y(cvalue.y0 + cvalue.y / 2) + ")";
+                })
+                .attr("dy", ".5em")
+                .text(function (d) {
+                    if (causes_meta[d.key].xlab < 100) {
+                        return causes_meta[d.key].name;
+                    } else {
+                        return "";
+                    }
+                });
+
+
+        //
+        // Axes
+        //
+        svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis);
+        svg.append("text")
+                .attr("class", "x axis")
+                .attr("transform", "translate(10," + (height + 19) + ")")
+                .text("years old");
+
+        svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis);
+
+
+        //
+        // Layer interaction
+        //
+
+        // Click layer.
+        svg.selectAll(".layer").on("click", function (d, i) {
+            if (USER_CAUSE === null) {
+                USER_CAUSE = d3.select(this).attr("id");
+            } else {
+                USER_CAUSE = null;
+            }
+
+            // console.log(d3.select(this).attr("id"));
+
+            update();
+        });
+
+
+        // Next layer.
+        function next() {
+            if (USER_CAUSE != null) {
+                var curr_index = Object.keys(causes_meta).indexOf(USER_CAUSE);
+                if (curr_index == Object.keys(causes_meta).length - 1) {
+                    USER_CAUSE = Object.keys(causes_meta)[0];
+                } else {
+                    USER_CAUSE = Object.keys(causes_meta)[curr_index + 1];
+                }
+
+                // console.log(USER_CAUSE);
+                update();
+            }
+        }
+
+
+        // Previous layer.
+        function previous() {
+            if (USER_CAUSE != null) {
+                var causes = Object.keys(causes_meta);
+                var curr_index = causes.indexOf(USER_CAUSE);
+                if (curr_index == 0) {
+                    USER_CAUSE = causes[causes.length - 1];
+                } else {
+                    USER_CAUSE = causes[curr_index - 1];
+                }
+
+                // console.log(USER_CAUSE);
+                update();
+            }
+        }
+
+        // Reset and show all layers
+        function reset() {
+            USER_CAUSE = null;
+            update();
+        }
+
+        function update() {
+            var data_filtered = the_data;
+            data_filtered = data_filtered.filter(function (d) {
+                return d.group === USER_DEMO;
+            });
+
+            // User selected a cause
+            if (USER_CAUSE != null) {
+
+                // Update current title
+                curr_title.text(causes_meta[USER_CAUSE].descrip);
+                curr_pct.transition().duration(1000)
+                        .tween("text", function () {
+                            var re = /(\d+)%/;
+                            var meta_array = re.exec(this.textContent);
+                            var just_number = meta_array[1];
+                            if (just_number.substring(0, 1) == "<") {
+                                just_number = just_number.substring(1);
+                            }
+
+                            var i = d3.interpolate(just_number, causes_meta[USER_CAUSE][USER_DEMO + "pct"]);
+                            return function (t) {
+                                if (i(t) < 1) {
+                                    this.textContent = "<1%";
+                                } else {
+                                    this.textContent = Math.round(i(t)) + "%";
+                                }
+                            }
+                        });
+                curr_meta.text(demos_meta[USER_DEMO].name + " Deaths");
+
+                // Filter data accordingly.
+                data_filtered = data_filtered.map(function (d) {
+                    if (d.cause !== USER_CAUSE) {	// Scope issues (?). Had to create new object.
+                        // console.log(d.cause + ": setting to zero");
+                        // console.log(d);
+                        return {
+                            "age": d.age,
+                            "cause": d.cause,
+                            "group": d.group,
+                            "prop": 0,
+                            "y": d.y,
+                            "y0": d.y0,
+                        }
+                    } else {
+                        // console.log(causes_meta[d.cause].name + ": NOT setting to zero");
+                        return d;
+                    }
+                });
+
+            }
+
+            // Cause deselected
+            else {
+                console.log("resetting");
+            }
+
+            // Update the layers TODO: Update layers. Labels updating now, but now areas
+            var layers = stack(nest.entries(data_filtered));
+
+            d3.selectAll(".layer")
+                    .data(layers)
+                    .transition()
+                    .duration(1000)
+                    .attr("d", function (d) {
+                        // console.log(d);
+                        return area(d.values);
+                    });
+
+            d3.selectAll(".layerlabel")
+                    .data(layers)
+                    .transition()
+                    .duration(1000)
+                    .attr("transform", function (d) {
+                        var cmeta = causes_meta[d.key];
+                        var cvalue = d.values[cmeta.xlab];
+                        console.log(cvalue);
+                        return "translate(" + x(cmeta.xlab) + "," + y(cvalue.y0 + cvalue.y / 2) + ")";
+                    })
+                    .style("opacity", function () {
+                        if (USER_CAUSE != null) {
+                            // Fade label out
+                            return 0;
+                        } else {
+                            return 1;
+                        }
+                    });
+
+        }
+
+    });
+
+
+    function type(d) {
+
+        d.age = +d.age;
+        d.prop = +d.prop;
+        return d;
+
+    }
+
+
+</script>

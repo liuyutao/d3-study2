@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../../js/d3.v3.js"></script>
+    <style>
+        body {
+            background: #222;
+            margin: auto;
+            width: 960px;
+        }
+        .arc-text {
+            font: 16px sans-serif;
+        }
+        .arc-center {
+            fill: none;
+        }
+
+        #credit {
+            position: absolute;
+            font: 10px sans-serif;
+            right: 10px;
+            bottom: 10px;
+            color: #ddd;
+        }
+
+        #credit a {
+            color: inherit;
+        }
+
+    </style>
+</head>
+<body>
+<script>
+    var width = 960,
+            height = 800,
+            radius = Math.min(width, height) /1.9,
+            spacing =.09;
+
+    var formatSecond = d3.time.format("%-S seconds"),
+            formatMinute = d3.time.format("%-H hours"),
+</script>
+</body>
+</html>

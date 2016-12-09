@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../js/d3.min.js"></script>
+</head>
+<body>
+<script>
+    var arr = [0,34,56,345,7,345,724,782,342,545,2472,78];
+    var qScale = d3.scale.quantile().domain(arr).range([0,1,2]);
+    console.log(",------"+qScale(444));
+    console.log(",------"+qScale(20));
+    console.log(",------"+qScale(2000));
+</script>
+</body>
+</html>

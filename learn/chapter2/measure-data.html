@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../js/d3.min.js"></script>
+</head>
+<body>
+<script>
+    var testArr = [88,100000,1,75,12,35];
+    console.log(",------"+d3.min(testArr, function (el) {
+                return el;
+            }));
+
+    console.log(",------"+d3.max(testArr, function (el) {
+                return el;
+            }));
+
+
+    console.log(",------"+d3.mean(testArr, function (el) {
+                return el;
+            }));
+</script>
+</body>
+</html>

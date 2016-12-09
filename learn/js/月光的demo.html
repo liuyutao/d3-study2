@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<script src="d3.min.js"></script>
+	<style>
+		svg{
+			background: #ccc;
+		}
+		.axis path,.axis line{
+			fill:none;
+			stroke:black;
+		}
+		.layer1{
+			fill:steelblue;
+		}
+		.layer2{
+			fill:#DA70D6;
+		}
+	</style>
+</head>
+<body>
+	<svg width="800" height="500"></svg>
+	<script>
+		window.onload=initial;
+		function initial(){
+			dataset = [
+				[Math.floor(Math.random()*100-50),Math.floor(Math.random()*100-50)],
+				[Math.floor(Math.random()*100-50),Math.floor(Math.random()*100-50)],
+				[Math.floor(Math.random()*100-50),Math.floor(Math.random()*100-50)],
+				[Math.floor(Math.random()*100-50),Math.floor(Math.random()*100-50)],
+				[Math.floor(Math.random()*100-50),Math.floor(Math.random()*100-50)]
+			];
+			console.log(dataset);
+			var svg = d3.select("svg"),
+				w = 800,
+				h = 500;
+			var margin = {
+				left:40,
+				right:20,
+				top:20,
+				bottom:30
+			}
+			var xScale = d3.scale.ordinal()
+				.domain([0,1,2,3,4])
+				.rangeBands([margin.left,w-margin.right],0.05)
+			var yScale = d3.scale.linear()
+				.domain([-100,100])
+				.range([h-margin.bottom,margin.top])
+			var xAxes = d3.svg.axis()
+				.scale(xScale)
+				.orient("bottom")
+			svg.append("g")
+				.attr("class","axis")
+				.attr("transform","translate("+0+","+(h-margin.bottom)+")")
+				.call(xAxes)
+			var yAxes = d3.svg.axis()
+				.scale(yScale)
+				.orient("left")
+			svg.append("g")
+				.attr("class","axis")
+				.attr("transform","translate("+margin.left+","+0+")")
+				.call(yAxes)
+			var g_rect = svg.append("g");
+			g_rect.selectAll("rect.layer1")
+				.data(dataset).enter()
+				.append("rect").attr("class","layer1")
+				.attr("x",function(d,i){
+					return xScale(i);
+				})
+				.attr("y",function(d){
+					console.log(d[0]);
+					if(d[0]<0){
+						return yScale(0);
+					}else{
+						return yScale(d[0]);
+					}
+					
+				})
+				.attr("width",xScale.rangeBand())
+				.attr("height",function(d){
+					return Math.abs(yScale(d[0])-yScale(0));
+				})
+			g_rect.selectAll("rect.layer2")
+				.data(dataset).enter()
+				.append("rect").attr("class","layer2")
+				.attr("x",function(d,i){
+					return xScale(i);
+				})
+				.attr("y",function(d){
+					if(d[0]*d[1]>0){
+						if(d[0]<0){
+							return yScale(0)+Math.abs(yScale(d[0])-yScale(0));
+						}else{
+							return yScale(0)-Math.abs(yScale(d[0])-yScale(0))-Math.abs(yScale(d[1])-yScale(0));
+						}
+					}else{
+						if(d[1]<0){
+							return yScale(0);
+						}else{
+							return yScale(d[1])
+						}
+					}
+				})
+				.attr("width",xScale.rangeBand())
+				.attr("height",function(d){
+					return Math.abs(yScale(d[1])-yScale(0));
+				})
+		}
+	</script>
+</body>
+</html>

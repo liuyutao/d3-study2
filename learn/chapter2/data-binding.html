@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../js/d3.min.js"></script>
+</head>
+<body>
+<script>
+    function dataViz(data) {
+        d3.select('body')
+                .selectAll('div.cities')
+                .data(data)
+                .enter()
+                .append('div')
+                .attr("class","cities")
+                .html(function (d, i) {
+                    return d.label;
+                })
+    }
+
+    d3.csv('cities.csv', function (data) {
+        dataViz(data)
+    })
+</script>
+</body>
+</html>

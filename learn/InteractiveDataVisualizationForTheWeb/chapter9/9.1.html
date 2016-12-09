@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../../js/d3.min.js"></script>
+</head>
+<style>
+    div.bar {
+        display: inline-block;
+        width: 20px;
+        height: 75px; /* 后面会覆盖这个高度 */
+        background-color: teal;
+    }
+</style>
+<body>
+<p>click this</p>
+</body>
+</html>
+<script>
+
+    var dataset = [];                         //初始化空数组
+    for (var i = 0; i < 20; i++) {            //循环25 次
+        var newNumber = parseInt(Math.random() * 30);   //生成介于0到30 之间的随机数
+        dataset.push(newNumber);              //把新数值添加到数组中
+    }
+
+    var w = 600;
+    var h = 250;
+    var barPadding = 1;
+    var svg = d3.select("body")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h);
+
+    var xScale = d3.scale.ordinal()
+            .domain(d3.range(dataset.length))
+            .rangeBands([0, w], 0.05);
+
+
+    svg.selectAll("rect")
+            .data(dataset)
+            .enter()
+            .append("rect")
+            .attr("x", function (d, i) {
+                return xScale(i);
+            })
+            .attr("y", function (d) {
+                return h - d * 5;
+            })
+            .attr("width", xScale.rangeBand())
+            .attr("height", function (d) {
+                return d * 5;
+            }).attr("fill", function (d) {
+        return "rgb(0,0," + (d * 10) + ")";
+    });
+
+
+    svg.selectAll("text")
+            .data(dataset)
+            .enter()
+            .append("text")
+            .text(function (d) {
+                return d;
+            })
+            .attr("x", function (d, i) {
+                return xScale(i);
+            })
+            .attr("y", function (d) {
+                return h - (d * 5) + 15;
+            })
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "11px")
+            .attr("fill", "white")
+            .attr("text-anchor", "middle");
+
+
+    d3.select("p")
+            .on("click", function () {
+                dataset = [11, 12, 15, 20, 18, 17, 16, 18, 23, 25,
+                    5, 10, 13, 19, 21, 25, 22, 18, 15, 13];
+
+                svg.selectAll("rect")
+                        .data(dataset)
+                        .transition()
+                        .duration(1000)
+                        .attr("y", function (d) {
+                            return h - d * 5;
+                        })
+                        .attr("x", function(d, i) {
+                            return xScale(i) + xScale.rangeBand() / 2;
+                        })
+                        .attr("height", function (d) {
+                            return d * 5;
+                        })
+                        .attr("fill", function (d) {   // <-- 在这儿呢！
+                            return "rgb(0, 0, " + (d * 10) + ")";
+                        });
+
+
+                svg.selectAll("text")
+                        .data(dataset)
+                        .text(function(d) {
+                            return d;
+                        })
+                        .transition()
+                        .duration(1000)
+                        .attr("x", function (d, i) {
+                            return xScale(i);
+                        })
+                        .attr("y", function (d) {
+                            return h - (d * 5) + 15;
+                        })
+
+            })
+
+</script>
