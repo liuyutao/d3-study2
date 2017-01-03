@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../../../js/d3.v4.js"></script>
+</head>
+<body>
+<canvas width="960" height="600"></canvas>
+<script>
+    var canvas = document.querySelector("canvas"),
+            context = canvas.getContext("2d"),
+            width = canvas.width,
+            height = canvas.height,
+            color = d3.scaleSequential(d3.interpolateRainbow)
+                    .domain([0,1000]),
+            randomX = d3.randomNormal(0.3),
+            randomY = d3.randomNormal(0);
+
+    rnder();
+
+    canvas.onclick = render;
+
+    function render() {
+        var x0 = width/20,
+                y0 = height / 2,
+                mainWalk = randomWalk(x0,y0,1000);
+
+
+    }
+</script>
+</body>
+</html>
